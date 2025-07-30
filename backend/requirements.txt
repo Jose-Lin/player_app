@@ -1,0 +1,3 @@
+leancloud>=3.0.0
+flask
+python-dotenv
