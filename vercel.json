@@ -1,9 +1,9 @@
 {
   "version": 2,
   "routes": [
-    { "src": "/backend/api/players", "dest": "/backend/api/players.py" },
-    { "src": "/backend/api/players/(.*)", "dest": "/backend/api/players.py" },
-    { "src": "/backend/api/transfers", "dest": "/backend/api/transfers.py" },
-    { "src": "/backend/api/matches", "dest": "/backend/api/matches.py" }
+    { "src": "/api/players", "dest": "/backend/api/players.py" },
+    { "src": "/api/players/(.*)", "dest": "/backend/api/players.py" },
+    { "src": "/api/transfers", "dest": "/backend/api/transfers.py" },
+    { "src": "/api/matches", "dest": "/backend/api/matches.py" }
   ]
 }
