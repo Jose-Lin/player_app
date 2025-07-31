@@ -15,3 +15,4 @@ transfers = transfer_query.find()
 print(f"球员: {player.get('name')}")
 for t in transfers:
     print(f"转会: {t.get('fromClub')} → {t.get('toClub')}")
+    
