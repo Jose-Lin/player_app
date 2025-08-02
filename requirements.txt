@@ -1,0 +1,5 @@
+fastapi
+supabase
+uvicorn
+python-dotenv
+jinja2

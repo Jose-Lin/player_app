@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>球员管理系统</title>
+    <link href="/static/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fa-solid fa-users"></i> 球员名录</h1>
+            <div class="header-controls">
+                <div class="stats">
+                    <span id="count">0</span> 位球员
+                </div>
+                <div class="view-toggle">
+                    <button id="card-view-btn" class="active">
+                        <i class="fa-solid fa-grip"></i> 卡片视图
+                    </button>
+                    <button id="list-view-btn">
+                        <i class="fa-solid fa-list"></i> 列表视图
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="filters">
+            <div class="search-box">
+                <input type="text" id="search" placeholder="搜索球员或俱乐部..." oninput="filterPlayers()">
+                <button onclick="filterPlayers()"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>
+            
+            <div class="season-filter">
+                <select id="season-select" onchange="filterPlayers()">
+                    <option value="all">全部赛季</option>
+                    <option value="2025-26">2025-26</option>
+                    <option value="2024-25">2024-25</option>
+                    <option value="2023-24">2023-24</option>
+                </select>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+        </div>
+
+        <!-- 卡片视图容器 -->
+        <div class="grid-container" id="card-view">
+            <!-- 动态加载内容 -->
+        </div>
+
+        <!-- 列表视图容器 -->
+        <div class="table-container" id="list-view" style="display:none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('name')">姓名 <i class="fa-solid fa-sort"></i></th>
+                        <th onclick="sortTable('birthday')">生日 <i class="fa-solid fa-sort"></i></th>
+                        <th onclick="sortTable('season')">赛季 <i class="fa-solid fa-sort"></i></th>
+                        <th onclick="sortTable('club_name')">俱乐部 <i class="fa-solid fa-sort"></i></th>
+                        <th onclick="sortTable('league')">联赛 <i class="fa-solid fa-sort"></i></th>
+                    </tr>
+                </thead>
+                <tbody id="list-view-body">
+                    <!-- 动态加载内容 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 原始数据（不再预处理）
+        const playerData = {{ players|tojson|safe }};
+        
+        // ============== 工具函数 ==============
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).replace(/\//g, '-');
+        }
+
+        function calculateAge(birthday) {
+            if (!birthday) return '未知';
+            const birthDate = new Date(birthday);
+            const ageDiff = Date.now() - birthDate.getTime();
+            return Math.abs(new Date(ageDiff).getUTCFullYear() - 1970);
+        }
+
+        // ============== 数据筛选 ==============
+        function filterPlayers() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const seasonFilter = document.getElementById('season-select').value;
+            
+            let filtered = playerData.filter(player => {
+                // 安全获取赛季数据
+                const seasons = player.seasons || [];
+                const latestSeason = seasons[0] || {};
+                
+                // 搜索匹配条件
+                const nameMatch = (player.c_name || player.name).toLowerCase().includes(searchTerm);
+                const clubMatch = latestSeason.club_name?.toLowerCase().includes(searchTerm);
+                
+                // 赛季匹配条件
+                const seasonMatch = 
+                    seasonFilter === 'all' || 
+                    seasons.some(s => s?.season === seasonFilter);
+                
+                return (nameMatch || clubMatch) && seasonMatch;
+            });
+
+            // 安全排序
+            filtered.sort((a, b) => {
+                const getLatestSeason = (player) => {
+                    const seasons = player.seasons || [];
+                    return seasons[0]?.season || '';
+                };
+                const aSeason = getLatestSeason(a);
+                const bSeason = getLatestSeason(b);
+                
+                return bSeason.localeCompare(aSeason) || 
+                    (a.c_name || a.name).localeCompare(b.c_name || b.name);
+            });
+
+            // 更新UI
+            document.getElementById('count').textContent = filtered.length;
+            renderCardView(filtered, seasonFilter);
+            renderListView(filtered, seasonFilter);
+        }
+        // ============== 视图渲染 ==============
+        function renderCardView(players, selectedSeason = 'all') {
+            const container = document.getElementById('card-view');
+            container.innerHTML = players.length ? 
+                players.map(player => {
+                    const seasonData = selectedSeason === 'all' 
+                        ? player.seasons?.[0]  // 默认显示最新赛季
+                        : player.seasons?.find(s => s.season === selectedSeason);
+                    return `
+                    <div class="card">
+                        <h3>${player.c_name || player.name}</h3>
+                        <div class="card-details">
+                            <div class="detail-row">
+                                <i class="fa-solid fa-calendar-days"></i>
+                                <span>${seasonData?.season || '未注册赛季'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <i class="fa-solid fa-shirt"></i>
+                                <span>${seasonData?.club_name || '自由球员'}</span>
+                                ${seasonData?.club_country ? `<span class="country-tag">${seasonData?.club_country}</span>` : ''}
+                            </div>
+                            <div class="detail-row">
+                                <i class="fa-solid fa-cake-candles"></i>
+                                <span>${player.birthday ? `${formatDate(player.birthday)} (${calculateAge(player.birthday)}岁)` : '生日未记录'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <i class="fa-solid fa-flag"></i>
+                                <span>${player.nationality || '国籍未记录'}</span>
+                            </div>
+                        </div>
+                    </div>`
+                }).join('') : 
+                '<div class="no-results">没有找到匹配的球员</div>';
+        }
+
+        function renderListView(players, selectedSeason = 'all') {
+            const tbody = document.getElementById('list-view-body');
+            tbody.innerHTML = players.length ? 
+                players.map(player => {
+                    const seasonData = selectedSeason === 'all' 
+                        ? player.seasons?.[0]
+                        : player.seasons?.find(s => s.season === selectedSeason);
+                    return `
+                    <tr>
+                        <td class="player-name">${player.c_name || player.name}</td>
+                        <td>${player.birthday ? formatDate(player.birthday) : '-'}</td>
+                        <td>${seasonData?.season || '-'}</td>
+                        <td>
+                            ${seasonData?.club_name || '自由球员'}
+                            ${seasonData?.club_country ? `<br><small>${seasonData?.club_country}</small>` : ''}
+                        </td>
+                        <td>${seasonData?.league_name || '-'}</td>
+                    </tr>`
+                }).join('') : 
+                '<tr><td colspan="5" class="no-results">没有找到匹配的球员</td></tr>';
+        }
+
+        // ============== 视图切换 ==============
+        function setupViewToggle() {
+            const cardViewBtn = document.getElementById('card-view-btn');
+            const listViewBtn = document.getElementById('list-view-btn');
+            
+            cardViewBtn.addEventListener('click', () => {
+                document.getElementById('card-view').style.display = 'grid';
+                document.getElementById('list-view').style.display = 'none';
+                cardViewBtn.classList.add('active');
+                listViewBtn.classList.remove('active');
+            });
+            
+            listViewBtn.addEventListener('click', () => {
+                document.getElementById('card-view').style.display = 'none';
+                document.getElementById('list-view').style.display = 'block';
+                cardViewBtn.classList.remove('active');
+                listViewBtn.classList.add('active');
+            });
+        }
+
+        // ============== 初始化 ==============
+        document.addEventListener('DOMContentLoaded', function() {
+            setupViewToggle();
+            filterPlayers(); // 初始加载
+        });
+    </script>
+    <script src="/static/sort.js"></script>
+</body>
+</html>

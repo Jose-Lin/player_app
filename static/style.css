@@ -1,0 +1,340 @@
+:root {
+    --primary: #4361ee;
+    --bg: #f8f9fa;
+    --card-bg: #ffffff;
+    --text: #2b2d42;
+    --border: #e9ecef;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #121212;
+        --card-bg: #1e1e1e;
+        --text: #e1e1e1;
+        --border: #333;
+    }
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+h1 {
+    color: var(--primary);
+    margin: 0;
+    font-weight: 600;
+}
+
+.stats {
+    background: var(--primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+.search-box {
+    display: flex;
+    max-width: 500px;
+}
+
+.search-box input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px 0 0 8px;
+    font-size: 1rem;
+}
+
+.search-box button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0 1.25rem;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-box button:hover {
+    background: #3a56d4;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid var(--border);
+}
+
+/* 卡片细节样式 */
+.card-details {
+    margin-top: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.dark .detail-row {
+    color: #bbb;
+}
+
+.detail-row i {
+    width: 1rem;
+    text-align: center;
+    color: var(--primary);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.dark .card h3 {
+    border-bottom-color: rgba(255,255,255,0.1);
+}
+
+@media (max-width: 768px) {
+    .detail-row {
+        font-size: 0.85rem;
+        gap: 0.6rem;
+    }
+}
+
+.birthday {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+/* 骨架屏加载动画 */
+.skeleton {
+    overflow: hidden;
+}
+
+.skeleton-line {
+    height: 16px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    animation: shimmer 1.5s infinite;
+}
+
+.skeleton-line.short {
+    width: 60%;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+    .skeleton-line {
+        background: linear-gradient(90deg, #2a2a2a 25%, #333 50%, #2a2a2a 75%);
+    }
+}
+
+/* 新增列表视图样式 */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 1.5rem;
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.table-container small {
+    font-size: 0.8em;
+    color: #666;
+}
+.dark .table-container small {
+    color: #aaa;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+th {
+    background: var(--primary);
+    color: white;
+    font-weight: 500;
+}
+
+tr:hover {
+    background: rgba(67, 97, 238, 0.05);
+}
+
+.player-name {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.club-cell {
+    min-width: 150px;
+}
+
+.club-tag {
+    background: #e0e7ff;
+    color: var(--primary);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    display: inline-block;
+}
+
+/* 视图切换按钮样式 */
+.view-toggle {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.view-toggle button {
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.view-toggle button.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .header-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    th, td {
+        padding: 0.75rem;
+    }
+}
+
+/* 筛选器区域样式 */
+.filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
+}
+
+.season-filter {
+    position: relative;
+    min-width: 150px;
+}
+
+.season-filter select {
+    appearance: none;
+    padding: 0.75rem 2rem 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 1rem;
+    cursor: pointer;
+    width: 100%;
+    height: 3rem;
+}
+
+.season-filter i {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--primary);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .filters {
+        flex-direction: column;
+    }
+    
+    .season-filter, .search-box {
+        width: 100%;
+    }
+}
+
+/* 国家标签样式 */
+.country-tag {
+    background: #e0e7ff;
+    color: #4361ee;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+    display: inline-block;
+}
