@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>球员详情</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <a href="/">← 返回球员列表</a>
+    <h1 id="playerName">球员详情</h1>
+
+    <!-- 第一部分：基础信息（简历式） -->
+    <section id="basicSection" class="card-section">
+      <div class="basic-left">
+        <img id="avatar" src="{{ url_for('static', path='avatars/default.png') }}" alt="avatar">
+      </div>
+      <div class="basic-right">
+        <table id="basicInfoTable">
+          <!-- JS 填充 -->
+        </table>
+      </div>
+    </section>
+
+    <!-- 第二部分：赛季信息 -->
+    <section id="seasonsSection">
+      <h2>赛季信息</h2>
+      <table id="seasonsTable">
+        <thead>
+          <tr>
+            <th>赛季</th><th>国家</th><th>俱乐部</th><th>队伍</th><th>联赛类别</th><th>联赛名称</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- 第三部分：比赛记录（带筛选） -->
+    <section id="matchesSection">
+      <h2>比赛记录</h2>
+
+      <div class="match-controls">
+        <label>赛季：
+          <select id="filterSeason"><option value="all">全部</option></select>
+        </label>
+        <label>赛制：
+          <select id="filterGameType"><option value="all">全部</option></select>
+        </label>
+        <label>代表球队：
+          <select id="filterTeam"><option value="all">全部</option></select>
+        </label>
+        <input id="matchSearch" placeholder="搜索赛事名称或对手..." />
+        <button id="refreshBtn">刷新</button>
+      </div>
+
+      <table id="matchesTable">
+        <thead>
+          <tr>
+            <th>赛季</th>
+            <th onclick="sortMatchesByDate()">日期 ↕</th>
+            <th>赛事</th>
+            <th>比赛信息</th>
+            <th>上场</th>
+            <th>时长</th>
+            <th>进/黄/红</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </div>
+
+<script>
+const PLAYER_ID = "{{ player_id }}";
+</script>
+<script src="{{ url_for('static', path='detail.js') }}"></script>
+</body>
+</html>
