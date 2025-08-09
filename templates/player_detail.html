@@ -38,7 +38,6 @@
     <!-- 第三部分：比赛记录（带筛选） -->
     <section id="matchesSection">
       <h2>比赛记录</h2>
-
       <div class="match-controls">
         <label>赛季：
           <select id="filterSeason"><option value="all">全部</option></select>
@@ -51,6 +50,7 @@
         </label>
         <input id="matchSearch" placeholder="搜索赛事名称或对手..." />
         <button id="refreshBtn">刷新</button>
+        <button onclick="openMatchForm()">新增比赛</button>
       </div>
 
       <table id="matchesTable">
@@ -63,6 +63,7 @@
             <th>上场</th>
             <th>时长</th>
             <th>进/黄/红</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -74,5 +75,87 @@
 const PLAYER_ID = "{{ player_id }}";
 </script>
 <script src="{{ url_for('static', path='detail.js') }}"></script>
+<!-- 比赛记录编辑/新增弹窗 -->
+<div id="matchFormModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeMatchForm()">&times;</span>
+    <h2 id="matchFormTitle">编辑比赛记录</h2>
+    <form id="matchForm" onsubmit="saveMatchForm(event)">
+      <input type="hidden" name="player_match_id">
+      <input type="hidden" name="player_season_id">
+
+      <label>赛季:</label>
+      <input type="text" name="season" required><br>
+
+      <label>日期:</label>
+      <input type="date" name="date" required><br>
+
+      <label>比赛类型:</label>
+      <select name="game_type" required>
+        <option value="联赛">联赛</option>
+        <option value="杯赛">杯赛</option>
+      </select><br>
+
+      <label>赛事名称:</label>
+      <input type="text" name="game_name"><br>
+
+      <label>主/客/中立:</label>
+      <select name="venue">
+        <option value="主场">主场</option>
+        <option value="客场">客场</option>
+        <option value="中立">中立</option>
+      </select><br>
+
+      <label>代表球队:</label>
+      <input type="text" name="team_name"><br>
+
+      <label>比分:</label>
+      <input type="number" name="team_score" style="width:60px"> -
+      <input type="number" name="oppo_score" style="width:60px"><br>
+
+      <label>对手球队:</label>
+      <input type="text" name="oppo_name"><br>
+
+      <label>点球比分:</label>
+      <input type="number" name="pen_team_score" style="width:60px"> -
+      <input type="number" name="pen_oppo_score" style="width:60px"><br>
+
+      <label>比赛时长:</label>
+      <input type="number" name="full_length" style="width:80px"><br>
+
+      <label>是否在名单:</label>
+      <select name="lineup" id="lineupSelect">
+        <option value="true">是</option>
+        <option value="false">否</option>
+      </select><br>
+
+      <div id="lineupDetails">
+        <label>首发/替补:</label>
+        <select name="role">
+          <option value="首发">首发</option>
+          <option value="替补">替补</option>
+        </select><br>
+
+        <label>出场分钟:</label>
+        <input type="number" name="minutes_played"><br>
+
+        <label>进球:</label>
+        <input type="number" name="goals"><br>
+
+        <label>黄牌:</label>
+        <input type="number" name="yellow_cards"><br>
+
+        <label>红牌:</label>
+        <input type="number" name="red_cards"><br>
+      </div>
+
+      <div style="margin-top:10px;">
+        <button type="submit">保存</button>
+        <button type="button" onclick="closeMatchForm()">取消</button>
+        <button type="button" id="deleteMatchBtn" style="display:none; color: red;" >删除</button>
+      </div>
+    </form>
+  </div>
+</div>
 </body>
 </html>
