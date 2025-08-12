@@ -24,11 +24,11 @@
 
     <!-- 第二部分：赛季信息 -->
     <section id="seasonsSection">
-      <h2>赛季信息</h2>
+      <h2>注册履历</h2>
       <table id="seasonsTable">
         <thead>
           <tr>
-            <th>赛季</th><th>国家</th><th>俱乐部</th><th>队伍</th><th>联赛类别</th><th>联赛名称</th>
+            <th>赛季</th><th>协会</th><th>俱乐部</th><th>球队</th><th>联赛等级</th><th>联赛名称</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -56,7 +56,6 @@
       <table id="matchesTable">
         <thead>
           <tr>
-            <th>赛季</th>
             <th onclick="sortMatchesByDate()">日期 ↕</th>
             <th>赛事</th>
             <th>比赛信息</th>
@@ -94,6 +93,7 @@ const PLAYER_ID = "{{ player_id }}";
       <select name="game_type" required>
         <option value="联赛">联赛</option>
         <option value="杯赛">杯赛</option>
+        <option value="友谊赛">友谊赛</option>
       </select><br>
 
       <label>赛事名称:</label>
@@ -127,6 +127,7 @@ const PLAYER_ID = "{{ player_id }}";
       <select name="lineup" id="lineupSelect">
         <option value="true">是</option>
         <option value="false">否</option>
+        <option value="unplayed">比赛未进行</option>
       </select><br>
 
       <div id="lineupDetails">

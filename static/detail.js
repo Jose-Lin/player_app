@@ -96,12 +96,11 @@ function renderMatches(list) {
   tbody.innerHTML = "";
   list.forEach(m => {
     const tr = document.createElement("tr");
-    const lineup = m.lineup ? (m.role || "首发/替补") : "未出场";
+    const lineup = m.lineup === "true" ? (m.role || "首发/替补") : (m.lineup === "false" ? "未出场" : (m.lineup === "unplayed" ? "比赛未进行" : "未知状态"));
     const minutes = m.minutes_played !== null && m.minutes_played !== undefined ? m.minutes_played : "-";
     const stats = `${m.goals || 0}/${m.yellow_cards || 0}/${m.red_cards || 0}`;
     const d = m.date || "-";
-    tr.innerHTML = `<td>${m.season || '-'}</td>
-                    <td>${d}</td>
+    tr.innerHTML = `<td>${d}</td>
                     <td>${m.game_name || '-'}</td>
                     <td>${m.match_info || '-'}</td>
                     <td>${lineup}</td>
@@ -240,12 +239,16 @@ async function saveMatchForm(e) {
   const fd = new FormData(form);
   const formData = Object.fromEntries(fd.entries());
 
-  // 处理 boolean / checkbox / select 返回值
-  if (formData.lineup === undefined) {
-    formData.lineup = false;
+  if (formData.lineup === undefined || formData.lineup === null || formData.lineup === "") {
+      formData.lineup = "unplayed";
   } else {
-    // 支持 checkbox("on") 或 select "true"/"false"
-    formData.lineup = String(formData.lineup) === "on" || String(formData.lineup) === "true";
+      // 统一转成字符串存储
+      formData.lineup = String(formData.lineup);
+      // 校验是否是合法的三个值
+      const validLineupValues = ["true", "false", "unplayed"];
+      if (!validLineupValues.includes(formData.lineup)) {
+          formData.lineup = "unplayed"; // 如果传了奇怪的值，回退到默认
+      }
   }
 
   // 把空字符串的数值字段转成 undefined，带数字的转成 int
@@ -287,7 +290,9 @@ async function saveMatchForm(e) {
   // player_season_id: 如果前端没有传就生成
   if (!formData.player_season_id || formData.player_season_id === "") {
     if (!formData.season) { alert("请填写赛季"); return; }
-    formData.player_season_id = `${playerId}_${formData.season}`;
+    const player_season = formData.season
+    const player_season_formatted = player_season.replace('-', '')
+    formData.player_season_id = `${playerId}_${player_season_formatted}`;
   }
 
   // 发送到后端：新增或更新

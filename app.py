@@ -61,11 +61,11 @@ def build_match_info(row: dict) -> str:
     oscore = "" if oppo_score is None else str(oppo_score)
 
     if "主场" in venue:
-        base = f"{team_name} {ts} - {oscore} {oppo_name}"
+        base = f"<strong>{team_name}</strong> {ts} - {oscore} {oppo_name}"
     elif "客场" in venue:
-        base = f"{oppo_name} {oscore} - {ts} {team_name}"
+        base = f"{oppo_name} {oscore} - {ts} <strong>{team_name}</strong>"
     else:
-        base = f"{team_name} {ts} - {oscore} {oppo_name}"
+        base = f"<strong>{team_name}</strong> {ts} - {oscore} {oppo_name}"
 
     extras = []
     try:
@@ -249,7 +249,7 @@ class MatchInfo(BaseModel):
     pen_team_score: Optional[int] = None
     pen_oppo_score: Optional[int] = None
     full_length: Optional[int] = None
-    lineup: Optional[bool] = None
+    lineup: Optional[str] = None
     role: Optional[str] = None
     minutes_played: Optional[int] = None
     goals: Optional[int] = None
@@ -308,7 +308,26 @@ async def update_player_match(
         raise HTTPException(status_code=400, detail="路径match_id与请求体player_match_id不匹配")
 
     try:
-        res = supabase.table("player_match_info").update(match.dict(exclude_none=True)).eq("player_match_id", match_id).execute()
+        res = supabase.table("player_match_info").select("*").eq("player_match_id", match_id).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"查询原记录失败: {e}")
+
+    if not res.data:
+        raise HTTPException(status_code=404, detail="未找到要更新的比赛记录")
+    
+    existing = res.data[0]
+    old_date = existing.get("date")
+    new_date = match.date if getattr(match, "date", None) is not None else old_date
+
+    new_player_match_id = match_id
+    if new_date and new_date != old_date:
+        new_player_match_id = generate_unique_match_id(player_id, new_date)
+    
+    update_data = match.dict(exclude_none=True)
+    update_data["player_match_id"] = new_player_match_id
+
+    try:
+        res = supabase.table("player_match_info").update(update_data).eq("player_match_id", match_id).execute()
         if res.count == 0:
             raise HTTPException(status_code=404, detail="未找到指定的比赛记录")
         return {"success": True}
