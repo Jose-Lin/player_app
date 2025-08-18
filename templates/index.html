@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>球员信息管理系统 — 列表</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>球员列表</h1>
+
+    <div class="controls">
+      <input id="searchBox" placeholder="搜索球员名/中文名..." />
+
+      <select id="ageFilter">
+        <option value="all">全部年龄</option>
+        <option value="u18">U18（<18）</option>
+        <option value="u21">U21（<21）</option>
+        <option value="u23">U23（<23）</option>
+        <option value="adult">成人（≥23）</option>
+      </select>
+
+      <select id="countryFilter">
+        <option value="all">全部俱乐部国家</option>
+        {% for c in countries %}
+        <option value="{{ c }}">{{ c }}</option>
+        {% endfor %}
+      </select>
+
+      <select id="genderFilter">
+        <option value="all">全部性别</option>
+        {% for g in genders %}
+        <option value="{{ g }}">{{ g }}</option>
+        {% endfor %}
+      </select>
+
+      <button onclick="switchView('card')">卡片视图</button>
+      <button onclick="switchView('list')">列表视图</button>
+    </div>
+
+    <!-- 卡片视图 -->
+    <div id="cardView" class="view active">
+      {% for p in players %}
+      <div class="player-card" 
+           data-name="{{ (p.name or '') + ' ' + (p.c_name or '') }}" 
+           data-age="{{ p.age or '' }}" 
+           data-country="{{ p.club_country or '' }}" 
+           data-gender="{{ p.gender or '' }}">
+        <a href="/player/{{ p.player_id }}" class="card-link">
+          <img src="{{ url_for('static', path=p.avatar_url) }}" alt="头像">
+          <h3>{{ p.name }}{% if p.c_name %}（{{ p.c_name }}）{% endif %}</h3>
+        </a>
+        <p>生日：{{ p.birthday or '-' }}（{{ p.age or '-' }} 岁）</p>
+        <p>俱乐部：{{ p.club_name }}</p>
+        <p>队伍：{{ p.team or '-' }}</p>
+        <p>联赛等级：{{ p.competition_category or '-' }}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- 列表视图 -->
+    <table id="listView" class="view">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">姓名</th>
+          <th onclick="sortTable(1)">生日</th>
+          <th onclick="sortTable(2)">俱乐部</th>
+          <th onclick="sortTable(3)">队伍</th>
+          <th onclick="sortTable(4)">联赛等级</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for p in players %}
+        <tr data-name="{{ (p.name or '') + ' ' + (p.c_name or '') }}" 
+            data-age="{{ p.age or '' }}" 
+            data-country="{{ p.club_country or '' }}" 
+            data-gender="{{ p.gender or '' }}">
+          <td><a href="/player/{{ p.player_id }}">{{ p.name }}{% if p.c_name %}（{{ p.c_name }}）{% endif %}</a></td>
+          <td>{{ p.birthday or '-' }}</td>
+          <td>{{ p.club_name }}</td>
+          <td>{{ p.team or '-' }}</td>
+          <td>{{ p.competition_category or '-' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+<script src="{{ url_for('static', path='list-and-card.js') }}"></script>
+</body>
+</html>
