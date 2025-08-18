@@ -10,7 +10,7 @@ async function fetchJSON(url) {
 
 async function loadBasicInfo() {
   const data = await fetchJSON(`/api/player/${PLAYER_ID}/info`);
-  document.getElementById("playerName").innerText = data.name || PLAYER_ID;
+  document.getElementById("playerName").innerText = data.c_name || data.name;
   document.getElementById("avatar").src = `/static/${data.avatar_url}`;
 
   const table = document.getElementById("basicInfoTable");
@@ -64,8 +64,10 @@ async function loadMatches(filters = {}) {
 
   // 填充下拉（只填一次）
   populateMatchFilters(payload);
-
   renderMatches(matchesCache);
+
+  const allPayload = await fetchJSON(`/api/player/${PLAYER_ID}/matches`);
+  renderLeagueSummary(allPayload.matches || []);
 }
 
 function populateMatchFilters(payload) {
@@ -153,6 +155,105 @@ function sortMatchesByDate() {
     return da < db ? -1 : 1;
   });
   renderMatches(arranged);
+}
+
+// 工具：把 null/undefined/"", 统一转成数字（默认0）
+function toIntOrZero(v) {
+  if (v === null || v === undefined || v === "") return 0;
+  const n = parseInt(v, 10);
+  return Number.isNaN(n) ? 0 : n;
+}
+
+// 工具：从记录里拿赛季（优先用 m.season；没有就从 player_season_id 末尾取）
+function extractSeason(m) {
+  if (m.season && m.season !== "") return m.season;
+  if (m.player_season_id) {
+    const parts = String(m.player_season_id).split("_");
+    return parts[parts.length - 1] || ""; // f"{player_id}_{season}" -> season
+  }
+  return "";
+}
+
+/**
+ * 渲染“比赛汇总（联赛）”
+ * 分组维度： season + team_name + game_name
+ * 只统计 game_type === "联赛"
+ * 出场数规则：
+ *  - 若该组所有 minutes_played 都是 NULL -> 出场数 = 角色 in ["首发","替补"] 的计数
+ *  - 否则 -> 出场数 = minutes_played > 0 的计数
+ * 进球 = sum(goals)（null按0）
+ * 出场时间 = sum(minutes_played)（null按0）
+ */
+function renderLeagueSummary(allMatches) {
+  const tbody = document.querySelector("#leagueSummaryTable tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  const leagueMatches = (allMatches || []).filter(m => 
+    String(m.game_type) === "联赛" && String(m.lineup) !== "unplayed"
+  );
+
+  // 按 (season, team_name, game_name) 分组
+  const groups = new Map();
+  for (const m of leagueMatches) {
+    const season = extractSeason(m);
+    const team = m.team_name || "";
+    const leagueName = m.game_name || "";
+    const key = JSON.stringify([season, team, leagueName]);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(m);
+  }
+
+  // 生成汇总行
+  // 可按赛季倒序、再按队名排序
+  const sortedKeys = Array.from(groups.keys()).sort((a, b) => {
+    const [sa, ta, la] = JSON.parse(a);
+    const [sb, tb, lb] = JSON.parse(b);
+    // 简单把赛季字符串倒序；如 "2025-26" 会按字面比较，已能满足大多数情况
+    if (sa === sb) {
+      if (ta === tb) return la.localeCompare(lb, "zh");
+      return ta.localeCompare(tb, "zh");
+    }
+    return sb.localeCompare(sa, "zh"); // 赛季倒序
+  });
+
+  for (const key of sortedKeys) {
+    const rows = groups.get(key);
+    const [season, team, leagueName] = JSON.parse(key);
+
+    const minutesList = rows.map(r => r.minutes_played);
+    const allMinutesNull = minutesList.every(v => v === null || v === undefined);
+
+    let appearances = 0;
+    if (allMinutesNull) {
+      // 出场 = 角色是首发/替补
+      appearances = rows.filter(r => r.role === "首发" || r.role === "替补").length;
+    } else {
+      // 出场 = minutes_played > 0
+      appearances = rows.filter(r => toIntOrZero(r.minutes_played) > 0).length;
+    }
+
+    const goals = rows.reduce((acc, r) => acc + toIntOrZero(r.goals), 0);
+    const minutes = rows.reduce((acc, r) => acc + toIntOrZero(r.minutes_played), 0);
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${season || "-"}</td>
+      <td>${team || "-"}</td>
+      <td>${leagueName || "-"}</td>
+      <td>${appearances}</td>
+      <td>${goals}</td>
+      <td>${minutes}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  // 如果一个分组都没有，放一个空行提示
+  if (groups.size === 0) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="6" style="text-align:center;color:#666;">暂无联赛数据</td>`;
+    tbody.appendChild(tr);
+  }
 }
 
 // init
